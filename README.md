@@ -1,2 +1,3 @@
-# social_network_system_design
-Design for social network
+## System design for social network
+
+* It is a repository for system design tasks of the [system design course](https://balun.courses/courses/system_design)
