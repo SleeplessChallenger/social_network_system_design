@@ -44,7 +44,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/responses/friendAdded'
+                $ref: '#/components/responses/friendResponse'
         '405':
           description: Invalid input. Check you REST verb
       security:
@@ -63,8 +63,12 @@ paths:
           schema:
             type: string
       responses:
-        '202':
-          description: request has been accepted and currently in process
+        '201':
+          description: friend has been deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/friendResponse'
       security:
         - bearerAuth: [ ]
   /friends/getAllUserFriends/{userId}:
@@ -119,7 +123,7 @@ paths:
           description: user with such id not found
       security:
         - bearerAuth: [ ]
-  /user/addPost: # TODO: being authorized
+  /user/addPost:
     post:
       tags:
         - post
@@ -202,10 +206,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/responses/homeFeed'
-        '405':
-          description: You can't make post to this endpoint
+        '403':
+          description: You must register to see the feed
       security:
         - bearerAuth: [ ]
+
   # /user/chats/{userId} - observe chats
   # /user/chats/{userId}?chatId={chatId} - observe content
   /user/chats/{userId}:
@@ -304,7 +309,7 @@ components:
           type: string
           enum:
             - online
-            - offline # TODO: think about `last seen`
+            - offline
     AboutPage:
       type: object
       required:
@@ -387,13 +392,16 @@ components:
         chat_image:
           $ref: '#/components/schemas/MediaData'
     MessageContent:
+      # https://stackoverflow.com/a/75464704/16543524
       type: object
       description: single message content
       required:
-
+        - message_content
+        - delivered_time
       properties:
         message_content:
-          type: string # TODO: it can be a message/image/audio
+          $ref: '#/components/schemas/MediaData'
+          # because each message can accept multiple files
         delivered_time:
           type: string
           format: date-time
@@ -429,7 +437,7 @@ components:
             # OBJECT inside which there is ARRAY of files
             $ref: '#/components/schemas/MediaData'
   responses:
-    friendAdded:
+    friendResponse:
       description: A new friend has been successfully added
       content:
         application/json:
