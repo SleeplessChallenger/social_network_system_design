@@ -36,7 +36,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/requestBodies/NewFriend'
+              $ref: '#/components/schemas/NewFriend'
         required: true
       responses:
         '200':
@@ -91,7 +91,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/requestBodies/AllFriends'
+                $ref: '#/components/responses/allFriends'
         '404':
           description: not existent user
       security:
@@ -112,7 +112,7 @@ paths:
             type: string
       responses:
         '200':
-          description: 'About' page of the user
+          description: About page of the user
           content:
             application/json:
               schema:
@@ -134,7 +134,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/requestBodies/NewPost'
+              $ref: '#/components/schemas/Post'
       responses:
         '200':
           description: Post has been added successfully
@@ -159,7 +159,7 @@ paths:
         content:
           multipart/form-data: # or use application/octet-stream
             schema:
-              $ref: '#/components/requestBodies/PostMediaData'
+              $ref: '#/components/schemas/MediaData'
       responses:
         '201':
           description: Data has been loaded
@@ -408,34 +408,6 @@ components:
         user_image:
           $ref: '#/components/schemas/MediaData'
 
-  requestBodies:
-    NewFriend:
-      description: A new friend to be added
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/NewFriend'
-    AllFriends:
-      description: List of all friends of the user
-      content:
-        application/json:
-          schema: # use type: array as we have multiple of friends
-            type: array
-            items:
-              $ref: '#/components/schemas/Friend'
-    NewPost:
-      description: New post to the feed
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Post'
-    PostMediaData:
-      description: New data for the post
-      content:
-        multipart/form-data:
-          schema:
-            # OBJECT inside which there is ARRAY of files
-            $ref: '#/components/schemas/MediaData'
   responses:
     friendResponse:
       description: A new friend has been successfully added
@@ -487,6 +459,14 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/MessageContent'
+    allFriends:
+      description: List of all friends of the user
+      content:
+        application/json:
+          schema: # use type: array as we have multiple of friends
+            type: array
+            items:
+              $ref: '#/components/schemas/Friend'
 
   securitySchemes:
     bearerAuth:
