@@ -71,7 +71,7 @@ paths:
                 $ref: '#/components/responses/friendResponse'
       security:
         - bearerAuth: [ ]
-  /friends/getAllUserFriends/{userId}:
+  /friends/allUserFriends/{userId}:
     get:
       tags:
         - friend
@@ -96,7 +96,7 @@ paths:
           description: not existent user
       security:
         - bearerAuth: [ ]
-  /user/about/{userId}:
+  /user-info/{userId}:
     get:
       tags:
         - user
@@ -123,7 +123,7 @@ paths:
           description: user with such id not found
       security:
         - bearerAuth: [ ]
-  /user/addPost:
+  /user/user-post:
     post:
       tags:
         - post
@@ -148,7 +148,7 @@ paths:
           description: Something strange. Try again
       security:
         - bearerAuth: [ ]
-  /user/loadData:
+  /user/data:
     post:
       tags:
         - post
