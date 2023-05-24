@@ -45,8 +45,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/responses/friendResponse'
-        '405':
-          description: Invalid input. Check you REST verb
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '500':
+          $ref: '#/components/responses/serverError'
       security:
         - bearerAuth: [ ]
     delete:
@@ -69,6 +73,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/responses/friendResponse'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '500':
+          $ref: '#/components/responses/serverError'
       security:
         - bearerAuth: [ ]
   /friends/allUserFriends/{userId}:
@@ -92,8 +102,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/responses/allFriends'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
         '404':
-          description: not existent user
+          $ref: '#/components/responses/notFound'
+        '500':
+          $ref: '#/components/responses/serverError'
       security:
         - bearerAuth: [ ]
   /user-info/{userId}:
@@ -119,8 +135,14 @@ paths:
                 type: object
                 items:
                   $ref: '#/components/responses/userAbout'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
         '404':
-          description: user with such id not found
+          $ref: '#/components/responses/notFound'
+        '500':
+          $ref: '#/components/responses/serverError'
       security:
         - bearerAuth: [ ]
   /user/user-post:
@@ -142,10 +164,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/responses/addedNewPost'
-        '403':
-          description: User doesn't have rights to make a post
-        '408':
-          description: Something strange. Try again
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '500':
+          $ref: '#/components/responses/serverError'
       security:
         - bearerAuth: [ ]
   /user/data:
@@ -163,8 +187,12 @@ paths:
       responses:
         '201':
           description: Data has been loaded
-        '408':
-          description: Error, try again
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '500':
+          $ref: '#/components/responses/serverError'
       security:
         - bearerAuth: [ ]
   /feed/user/{userId}:
@@ -188,8 +216,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/responses/userFeed'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
         '404':
-          description: userId not found
+          $ref: '#/components/responses/notFound'
+        '500':
+          $ref: '#/components/responses/serverError'
       security:
         - bearerAuth: [ ]
   /feed/home:
@@ -206,8 +240,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/responses/homeFeed'
-        '403':
-          description: You must register to see the feed
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '500':
+          $ref: '#/components/responses/serverError'
       security:
         - bearerAuth: [ ]
 
@@ -233,10 +271,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/responses/userChats'
+        '400':
+          $ref: '#/components/responses/badRequest'
         '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden (not enough rights)
+          $ref: '#/components/responses/unauthorized'
+        '500':
+          $ref: '#/components/responses/serverError'
       security:
         - bearerAuth: [ ]
   /user/chats/{userId}/messages:
@@ -265,10 +305,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/responses/userMessages'
+        '400':
+          $ref: '#/components/responses/badRequest'
         '401':
-          description: Unauthorized
+          $ref: '#/components/responses/unauthorized'
         '403':
-          description: Forbidden (not enough rights)
+          # If user wants to see channel that is closed
+          $ref: '#/components/responses/notEnoughRights'
+        '500':
+          $ref: '#/components/responses/serverError'
       security:
         - bearerAuth: [ ]
 
@@ -407,6 +452,26 @@ components:
           format: date-time
         user_image:
           $ref: '#/components/schemas/MediaData'
+    Error:
+      type: object
+      required:
+        - error_id
+        - message
+        - code
+        - msg_description
+      properties:
+        error_id:
+          description: unique id for tracking errors in logs
+          type: string
+        message:
+          type: string
+          description: full description of the error for devs
+        code:
+          type: integer
+          description: http code of the error
+        msg_description:
+          type: string
+          description: full description of the error for users
 
   responses:
     friendResponse:
@@ -467,6 +532,36 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/Friend'
+    badRequest:
+      description: Response of something is bad on the client side
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    unauthorized:
+      description: Response if user is unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    notEnoughRights:
+      description: Response if user doesn't have enough rights
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    notFound:
+      description: Response if user not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    serverError:
+      description: Response if server is down
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
 
   securitySchemes:
     bearerAuth:
