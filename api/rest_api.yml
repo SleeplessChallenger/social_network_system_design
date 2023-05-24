@@ -40,11 +40,7 @@ paths:
         required: true
       responses:
         '200':
-          description: Successfully added a friend
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/responses/friendResponse'
+          $ref: '#/components/responses/friendResponse'
         '400':
           $ref: '#/components/responses/badRequest'
         '401':
@@ -68,11 +64,7 @@ paths:
             type: string
       responses:
         '201':
-          description: friend has been deleted
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/responses/friendResponse'
+          $ref: '#/components/responses/friendResponse'
         '400':
           $ref: '#/components/responses/badRequest'
         '401':
@@ -97,11 +89,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Show all users
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/responses/allFriends'
+          $ref: '#/components/responses/allFriends'
         '400':
           $ref: '#/components/responses/badRequest'
         '401':
@@ -128,13 +116,7 @@ paths:
             type: string
       responses:
         '200':
-          description: About page of the user
-          content:
-            application/json:
-              schema:
-                type: object
-                items:
-                  $ref: '#/components/responses/userAbout'
+          $ref: '#/components/responses/userAbout'
         '400':
           $ref: '#/components/responses/badRequest'
         '401':
@@ -159,11 +141,7 @@ paths:
               $ref: '#/components/schemas/Post'
       responses:
         '200':
-          description: Post has been added successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/responses/addedNewPost'
+          $ref: '#/components/responses/addedNewPost'
         '400':
           $ref: '#/components/responses/badRequest'
         '401':
@@ -211,11 +189,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Feed is displayed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/responses/userFeed'
+          $ref: '#/components/responses/userFeed'
         '400':
           $ref: '#/components/responses/badRequest'
         '401':
@@ -235,11 +209,7 @@ paths:
       description: This endpoint allows to the overall home page
       responses:
         '200':
-          description: Feed is displayed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/responses/homeFeed'
+          $ref: '#/components/responses/homeFeed'
         '400':
           $ref: '#/components/responses/badRequest'
         '401':
@@ -266,11 +236,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Display all chats
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/responses/userChats'
+          $ref: '#/components/responses/userChats'
         '400':
           $ref: '#/components/responses/badRequest'
         '401':
@@ -300,11 +266,7 @@ paths:
             type: string
       responses:
         '200':
-          description: successfully showing chat history
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/responses/userMessages'
+          $ref: '#/components/responses/userMessages'
         '400':
           $ref: '#/components/responses/badRequest'
         '401':
