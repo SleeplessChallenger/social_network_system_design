@@ -1,0 +1,532 @@
+openapi: 3.0.3
+info:
+  title: Swagger social network - OpenAPI 3.0
+  description: |-
+    This is a design for Social Network based on the OpenAPI 3.0 specification
+  contact:
+    email: sausernsunny@gmail.com
+  version: 1.0.0
+externalDocs:
+  description: Find out more in GitHub repo
+  url: https://github.com/SleeplessChallenger/social_network_system_design
+tags:
+  - name: friend
+    description: Everything about your friends
+  - name: user
+    description: Everything related to the user
+  - name: post
+    description: Everything related to the post
+  - name: feed
+    description: Everything related to the feed
+  - name: chat
+    description: Everything related to chats
+
+paths:
+  /friends:
+    post:
+      tags:
+        - friend
+      summary: Add a new friend
+      description: Add a new friend
+      operationId: addFriend
+      requestBody:
+        description: |-
+          Add a new friend to the current user. Use only user_id (better use some system_id rather than primary key)
+          so as not to couple API to the particular primary key of the database
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewFriend'
+        required: true
+      responses:
+        '200':
+          $ref: '#/components/responses/friendResponse'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '500':
+          $ref: '#/components/responses/serverError'
+      security:
+        - bearerAuth: [ ]
+    delete:
+      tags:
+        - friend
+      summary: Delete an existing friend
+      description: Delete a friend of the user
+      operationId: deleteFriend
+      parameters:
+        - name: friendId
+          in: query
+          description: Param for the to be deleted user
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          $ref: '#/components/responses/friendResponse'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '500':
+          $ref: '#/components/responses/serverError'
+      security:
+        - bearerAuth: [ ]
+  /friends/allUserFriends/{userId}:
+    get:
+      tags:
+        - friend
+      summary: Show all friends of the user
+      description: Show all friends of the provided user (it can be current user or another user)
+      operationId: showAllFriends
+      parameters:
+        - name: userId
+          in: path
+          description: Param for the friends of the desired user
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/allFriends'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '500':
+          $ref: '#/components/responses/serverError'
+      security:
+        - bearerAuth: [ ]
+  /user-info/{userId}:
+    get:
+      tags:
+        - user
+      summary: View home page of the user
+      description: Enables to see the 'about' page of the particular user
+      operationId: userAboutPage
+      parameters:
+        - name: userId
+          in: path
+          description: Param to see the 'about' page of the user
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/userAbout'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '500':
+          $ref: '#/components/responses/serverError'
+      security:
+        - bearerAuth: [ ]
+  /user/user-post:
+    post:
+      tags:
+        - post
+      summary: Add new post
+      operationId: addNewPost
+      description: New post to the feed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Post'
+      responses:
+        '200':
+          $ref: '#/components/responses/addedNewPost'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '500':
+          $ref: '#/components/responses/serverError'
+      security:
+        - bearerAuth: [ ]
+  /user/data:
+    post:
+      tags:
+        - post
+      summary: Load a media data for the post
+      operationId: loadPostData
+      description: Media data for the post
+      requestBody:
+        content:
+          multipart/form-data: # or use application/octet-stream
+            schema:
+              $ref: '#/components/schemas/MediaData'
+      responses:
+        '201':
+          description: Data has been loaded
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '500':
+          $ref: '#/components/responses/serverError'
+      security:
+        - bearerAuth: [ ]
+  /feed/user/{userId}:
+    get:
+      tags:
+        - feed
+      summary: See feed of the user
+      operationId: userFeed
+      description: This endpoint allows to see the feed page of the user
+      parameters:
+        - name: userId
+          in: path
+          description: Id of the user
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/userFeed'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '500':
+          $ref: '#/components/responses/serverError'
+      security:
+        - bearerAuth: [ ]
+  /feed/home:
+    get:
+      tags:
+        - feed
+      summary: See home feed
+      operationId: homeFeed
+      description: This endpoint allows to the overall home page
+      responses:
+        '200':
+          $ref: '#/components/responses/homeFeed'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '500':
+          $ref: '#/components/responses/serverError'
+      security:
+        - bearerAuth: [ ]
+
+  # /user/chats/{userId} - observe chats
+  # /user/chats/{userId}?chatId={chatId} - observe content
+  /user/chats/{userId}:
+    get:
+      tags:
+        - chat
+      summary: See user chats and messages
+      operationId: userMessages
+      description: Here user can see chats and messages
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/userChats'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '500':
+          $ref: '#/components/responses/serverError'
+      security:
+        - bearerAuth: [ ]
+  /user/chats/{userId}/messages:
+    get:
+      tags:
+        - chat
+      summary: See messages content
+      description: This endpoint enables to see messages
+      operationId: messageContent
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: chatId
+          in: query
+          required: true
+          description: id of the messages or chats
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/userMessages'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          # If user wants to see channel that is closed
+          $ref: '#/components/responses/notEnoughRights'
+        '500':
+          $ref: '#/components/responses/serverError'
+      security:
+        - bearerAuth: [ ]
+
+components:
+  schemas:
+    NewFriend:
+      type: object
+      required:
+        - user_id
+      properties:
+        user_id:
+          type: string
+          format: uuid
+    Friend:
+      type: object
+      required:
+        - user_id
+        - name
+        - surname
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        surname:
+          type: string
+        age:
+          type: integer
+          format: int64
+        phone_number:
+          type: integer
+          format: int64
+        image:
+          type: string
+          description: store only name/location of the file in main database and real image somewhere else
+        status:
+          type: string
+          enum:
+            - online
+            - offline
+    AboutPage:
+      type: object
+      required:
+        - user_id
+        - name
+        - surname
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        surname:
+          type: string
+        age:
+          type: integer
+          format: int64
+        phone_number:
+          type: integer
+          format: int64
+        image:
+          type: string
+          description: store only name/location of the file in main database and real image somewhere else
+        friends:
+          type: array
+          items:
+            $ref: '#/components/schemas/Friend'
+    Post:
+      type: object
+      required:
+        - post_id
+        - body
+        - author
+        - date_added
+      properties:
+        post_id:
+          type: string
+          format: uuid
+        body:
+          type: string
+        author:
+          description: Current user who added the post
+          type: string
+          format: uuid
+        date_added:
+          type: string
+          format: date-time
+          description: Date of the post being created
+        image:
+          $ref: '#/components/schemas/MediaData'
+    MediaData: # for multiple files
+      type: object
+      description: some media data for post/chat
+      required:
+        - file
+      properties:
+        file:
+          type: array
+          items:
+            type: string
+            format: binary
+    MessageOverview:
+      type: object
+      description: single message overview displayed
+      required:
+        - message_name
+        - last_message
+        - last_message_date
+      properties:
+        message_name:
+          type: string
+          description: |-
+            name of the chat with another user or the whole group. It can be
+            either name of another user or name of some chat
+        last_message:
+          type: string
+        last_message_date:
+          type: string
+          format: date-time
+        chat_image:
+          $ref: '#/components/schemas/MediaData'
+    MessageContent:
+      # https://stackoverflow.com/a/75464704/16543524
+      type: object
+      description: single message content
+      required:
+        - message_content
+        - delivered_time
+      properties:
+        message_content:
+          $ref: '#/components/schemas/MediaData'
+          # because each message can accept multiple files
+        delivered_time:
+          type: string
+          format: date-time
+        user_image:
+          $ref: '#/components/schemas/MediaData'
+    Error:
+      type: object
+      required:
+        - error_id
+        - message
+        - code
+        - msg_description
+      properties:
+        error_id:
+          description: unique id for tracking errors in logs
+          type: string
+        message:
+          type: string
+          description: full description of the error for devs
+        code:
+          type: integer
+          description: http code of the error
+        msg_description:
+          type: string
+          description: full description of the error for users
+
+  responses:
+    friendResponse:
+      description: A new friend has been successfully added
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NewFriend'
+    userAbout:
+      description: Page about the user
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AboutPage'
+    addedNewPost:
+      description: New post has been added
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Post'
+    homeFeed:
+      description: Home feed
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Post'
+    userFeed:
+      description: User feed
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Post'
+    userChats:
+      description: Array of all messages and chats
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/MessageOverview'
+    userMessages:
+      description: Array of message content
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/MessageContent'
+    allFriends:
+      description: List of all friends of the user
+      content:
+        application/json:
+          schema: # use type: array as we have multiple of friends
+            type: array
+            items:
+              $ref: '#/components/schemas/Friend'
+    badRequest:
+      description: Response of something is bad on the client side
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    unauthorized:
+      description: Response if user is unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    notEnoughRights:
+      description: Response if user doesn't have enough rights
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    notFound:
+      description: Response if user not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    serverError:
+      description: Response if server is down
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
