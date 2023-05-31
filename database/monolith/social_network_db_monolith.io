@@ -18,7 +18,7 @@ Table users {
 Table posts {
   post_id integer [primary key]
   body text
-  author integer
+  author_id integer
   date_added timestamp
   image string [null] // link to the position in S3
   likes integer [default: 0]
@@ -97,7 +97,7 @@ Table messages {
   channel_id bigint
   author_id integer // user id
   message_content text
-  data_content string // link to the position in S3
+  content_url string // link to the position in S3
   sent_at timestamp
   seen boolean
   message_id_channel_id bigint [primary key] // composite PK

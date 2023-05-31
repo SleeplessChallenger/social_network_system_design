@@ -23,7 +23,7 @@ I.e. User writes/likes post or comment -> request is sent to the service with us
 Table posts {
   post_id integer [primary key]
   body text
-  author integer
+  author_id integer
   date_added timestamp
   image string [null] // link to the position in S3
   likes integer [default: 0]
@@ -110,13 +110,13 @@ Table messages {
   channel_id bigint
   author_id integer // user id
   message_content text
-  data_content string // link to the position in S3
+  content_url string // link to the position in S3
   sent_at timestamp
   seen boolean
   message_id_channel_id bigint [primary key] // composite PK
 }
 
-// Fourth microservice: responsible for storing Media data (iamges, video, audio)
+// Fourth microservice: responsible for storing Media data (images, video, audio)
 Table S3BucketExample {
   SOCIAL_NETWORK_BUCKET object // bucket in S3
   SOCIAL_NETWORK_KEY object // key in the bucket

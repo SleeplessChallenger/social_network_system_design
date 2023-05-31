@@ -13,7 +13,7 @@ CREATE TABLE "users" (
 CREATE TABLE "posts" (
   "post_id" integer PRIMARY KEY,
   "body" text,
-  "author" integer,
+  "author_id" integer,
   "date_added" timestamp,
   "image" string,
   "likes" integer DEFAULT 0,
@@ -63,7 +63,7 @@ CREATE TABLE "messages" (
   "channel_id" bigint,
   "author_id" integer,
   "message_content" text,
-  "data_content" string,
+  "content_url" string,
   "sent_at" timestamp,
   "seen" boolean,
   "message_id_channel_id" bigint PRIMARY KEY
