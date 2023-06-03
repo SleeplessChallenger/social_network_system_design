@@ -8,12 +8,14 @@
   * First chunk:
     * `posts`: shard by `author_id` and `post_id`
       * Because some users may make more posts, hence `author_id` is not enough
+      * Use **application level sharding** or use ready-made solution like Citus: https://docs.citusdata.com/en/v11.3/get_started/what_is_citus.html#what-is-citus
   * Second chunk:
     * `users`: shard by `user_id`
       * Sharding by `city` is bad as system may have more users from big cities => hot shard
   * Third chunk:
-    * `messages`: shard by **composite PK** `message_id_channel_id`
+    * `messages`: shard by `channel_id`
       * Sharding by `author_id` is bad as some users are more active => hot shard
+      * Additionally, we can put **smart sharding service** for re-balancing data and so on
 
 * _Replication_:
   * type: **master-slave** (one master, 3 slaves)
