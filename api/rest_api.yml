@@ -220,14 +220,15 @@ paths:
         - bearerAuth: [ ]
 
   # /user/chats/{userId} - observe chats
-  # /user/chats/{userId}?chatId={chatId} - observe content
   /user/chats/{userId}:
     get:
       tags:
         - chat
       summary: See user chats and messages
       operationId: userMessages
-      description: Here user can see chats and messages
+      description: |-
+        Here user can see chats and messages. But not content, just overall info
+        about chats (like what we see when we enter TG or VK in messages)
       parameters:
         - name: userId
           in: path
@@ -245,12 +246,15 @@ paths:
           $ref: '#/components/responses/serverError'
       security:
         - bearerAuth: [ ]
+  # /user/chats/{userId}?chatId={chatId} - observe content
   /user/chats/{userId}/messages:
     get:
       tags:
         - chat
       summary: See messages content
-      description: This endpoint enables to see messages
+      description: |-
+        This endpoint enables to see messages content. Here it is about
+        content of each chat with another user or group chat
       operationId: messageContent
       parameters:
         - name: userId
@@ -344,6 +348,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Friend'
+        interests:
+          type: string
+        city:
+          type: string
     Post:
       type: object
       required:
@@ -367,6 +375,16 @@ components:
           description: Date of the post being created
         image:
           $ref: '#/components/schemas/MediaData'
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+        hashtags:
+          type: array
+          items:
+            type: string
+        likes:
+          type: integer
     MediaData: # for multiple files
       type: object
       description: some media data for post/chat
@@ -407,6 +425,8 @@ components:
         - delivered_time
       properties:
         message_content:
+          type: string
+        media_data:
           $ref: '#/components/schemas/MediaData'
           # because each message can accept multiple files
         delivered_time:
@@ -414,6 +434,21 @@ components:
           format: date-time
         user_image:
           $ref: '#/components/schemas/MediaData'
+    Comment:
+      type: object
+      properties:
+        comment_id:
+          type: integer
+        date_added:
+          type: string
+          format: date-time
+        content:
+          type: string
+        author:
+          type: integer
+          description: id of the user
+        likes:
+          type: integer
     Error:
       type: object
       required:
