@@ -6,7 +6,7 @@
 
 * _Sharding_:
   * First chunk:
-    * `posts`: shard by `author_id` and `post_id`
+    * `posts`: shard by `post_id`
       * Because some users may make more posts, hence `author_id` is not enough
       * Use **application level sharding** or use ready-made solution like Citus: https://docs.citusdata.com/en/v11.3/get_started/what_is_citus.html#what-is-citus
   * Second chunk:
