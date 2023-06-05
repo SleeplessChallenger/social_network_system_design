@@ -23,8 +23,8 @@
 
 ### Functional and Non-Functional requirements
 
-TLDR: approximate requirements which can be altered further
-<br/><br/>
+TLDR: approximate requirements which can be altered further <br/><br/>
+
 * **Functional**
     * _channels/chats_:
         * channels where users can read only or write/read
@@ -57,8 +57,8 @@ TLDR: approximate requirements which can be altered further
         * login window (probably SSO + IdP)
         * home page (image, about, interests) with posts of the very user
         * settings (change password, image, about)
-        * friends: add friend/delete friend
-<br/><br/>
+        * friends: add friend/delete friend <br/><br/>
+
 * **Non-Functional**
     * DAU 40 000 000
     * MAU 38 000 000
@@ -79,14 +79,15 @@ TLDR: approximate requirements which can be altered further
         * posts: 3-5 seconds (like on LinkedIn) for the author and 10-20 seconds for another users. Don't forget sticky
           anomaly
     * _geo-distributed_: Russia (east and west), Central Asia <br/><br/>
+
 * **Load/Storage calculations**
     * 1 image (1024 X 768 pixels) is roughly 1 MB (0.75 MB exactly). Hence, overall size for pictures is 5 MB (upper
       bound):
         * https://www.pixelconverter.com/pixel-to-mb-converter/
     * for allowing all languages we will consider 3 bytes per character:
         * https://stackoverflow.com/a/14487578/16543524
-    * HDD has 100/200 Mb/s throughput
-    <br/><br/>
+    * HDD has 100/200 Mb/s throughput <br/><br/>
+
     * Incoming RPS for messages:
     ```
     messages per second write load: 40 000 000 * 40 / 86400 = 18 518
@@ -120,7 +121,7 @@ TLDR: approximate requirements which can be altered further
     0.015 + 5 (1MB * 5) (max post size with images) = 5.1 MB (roughly)
 
     reading: 46296 * 5.1 MB = 236110 MB/237 GB/0.24 TB
-    creation: 462 * 5.1 MB = 2357 MB/2,36 GB/0.002 TB
+    creation: 462 * 5.1 MB = 2357 MB/2.36 GB/0.002 TB
     ```
     * DB size for posts within 5 years (we have eternal retention):
     ```
