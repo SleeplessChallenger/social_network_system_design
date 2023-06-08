@@ -22,6 +22,48 @@ tags:
     description: Everything related to chats
 
 paths:
+  # briefly about SSO: https://security.stackexchange.com/questions/168148/where-are-passwords-stored-in-saml-on-the-idp-or-on-the-sp-side
+  /login:
+    get:
+      tags:
+        - auth
+      summary: Authentication
+      description: |-
+        Endpoint for authentication. User either goes there directly or will be redirected by SSO
+      operationId: loginUser
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: id of the user to authenticate it in IdP
+          schema:
+            type: string
+        - name: redirectUri
+          in: query
+          required: false
+          description: |-
+            Possible URI which user will be redirected to if success in IdP happens. If not provided - default page
+      responses:
+        '302':
+          description: "Redirecting the user to the redirectURI specified in the parameters"
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '500':
+          $ref: '#/components/responses/serverError'
+  /logout:
+    get:
+      tags:
+        - auth
+      summary: Logout operation
+      operationId: logoutUser
+      parameters:
+        - name: token
+          in: query
+          description: Token issued for the user
+          required: true
+      responses:
+        '200':
+          description: "Logout successful"
   /friends:
     post:
       tags:
@@ -58,7 +100,7 @@ paths:
       parameters:
         - name: friendId
           in: query
-          description: Param for the to be deleted user
+          description: Param for the user to be deleted
           required: true
           schema:
             type: string
@@ -69,6 +111,9 @@ paths:
           $ref: '#/components/responses/badRequest'
         '401':
           $ref: '#/components/responses/unauthorized'
+        '403':
+          # If user wants to delete another user's friend
+          $ref: '#/components/responses/notEnoughRights'
         '500':
           $ref: '#/components/responses/serverError'
       security:
@@ -169,6 +214,33 @@ paths:
           $ref: '#/components/responses/badRequest'
         '401':
           $ref: '#/components/responses/unauthorized'
+        '500':
+          $ref: '#/components/responses/serverError'
+      security:
+        - bearerAuth: [ ]
+    delete:
+      tags:
+        - post
+      summary: Delete an existing post
+      description: Delete a post of the user
+      operationId: deletePost
+      parameters:
+        - name: postId
+          in: query
+          description: Param for the post to be deleted
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Data has been deleted
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          # If user wants to delete another user's post
+          $ref: '#/components/responses/notEnoughRights'
         '500':
           $ref: '#/components/responses/serverError'
       security:
@@ -277,6 +349,60 @@ paths:
           $ref: '#/components/responses/unauthorized'
         '403':
           # If user wants to see channel that is closed
+          $ref: '#/components/responses/notEnoughRights'
+        '500':
+          $ref: '#/components/responses/serverError'
+      security:
+        - bearerAuth: [ ]
+  /user/chats/{userId}/message:
+    post:
+      tags:
+        - chat
+      summary: Send a message
+      description: |-
+        This endpoint allows to send a message
+      operationId: newMessage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageContent'
+      responses:
+        '200':
+          description: Message sent
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          # If channel allows only to read
+          $ref: '#/components/responses/notEnoughRights'
+        '500':
+          $ref: '#/components/responses/serverError'
+      security:
+        - bearerAuth: [ ]
+    delete:
+      tags:
+        - chat
+      summary: Delete an existing message
+      description: Delete a message of the user
+      operationId: deleteMessage
+      parameters:
+        - name: messageId
+          in: query
+          description: Param for the message to be deleted
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Data has been deleted
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          # If user wants to delete another user's message
           $ref: '#/components/responses/notEnoughRights'
         '500':
           $ref: '#/components/responses/serverError'

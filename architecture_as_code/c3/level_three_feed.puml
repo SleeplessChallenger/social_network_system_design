@@ -1,0 +1,38 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+System(agwAlias, "API Gateway", "API Gateway to proxy the traffic into the internal network + plays role of SSO")
+
+System_Boundary(c3, "Inner network (K8S cluster) - area of feed system") {
+    Container(feedService, "Feed microservice", "Java 17 + SpringBoot/Quarkus + GraalVM", "Responsible for giving posts to users + after new post is added and cache for home feed page of user is updated, this service will update cache for local main feed per user (cache replacement)")
+
+    ContainerDb(cachePostsMainFeed, "Key-value cache: X posts from local main feed for each user (available to current user only). Keeps data for users who have been online within 2 last days. Replicated by 3", $tags="db", "Tarantool")
+    ContainerDb(cachePostsHomeFeed, "Key-value cache: X posts for each home feed page of the user (this one is available to all) Keeps data for users who have been online within 2 last days. Replicated by 3", $tags="db", "Tarantool")
+    ContainerDb(cachePostsCelebFeed, "Key-value cache: X posts for celebs (this one is available to all). Replicated by 3", $tags="db", "Tarantool")
+}
+
+
+Rel(agwAlias, feedService, "User sends a request for a) local main feed b) own feed (page) c) someone's feed")
+
+System_Boundary(postsSystem, "Inner network (K8S cluster) - area of posts system") {
+    Container(posts, "Post microservice", "Java 17 + SpringBoot/Quarkus + GraalVM", "Responsible for posts creation")
+}
+ContainerQueue(mqPosts, "Message Queue", "Kafka", "Topic based queue to decouple posts creation from their appearance in the feed")
+Rel(posts, mqPosts, "Sends a) new post to Queue b) request to delete a post")
+Rel(mqPosts, feedService, "Pulls data from posts topic")
+
+System_Boundary(relationSystem, "System for all the relations between people") {
+    Container(relationService, "Relations microservice", "Go/Python")
+    ContainerDb(graph, "Relation database", $tags="db", "Neo4J", "Keeps info about all relations")
+}
+Rel(relationService, graph, "Persists/Retrieves/Deletes data")
+Rel(feedService, relationService, "Gets data about friends to update local main feed for each user + home feed page of the user (1)", "gRPC")
+Rel(feedService, relationService, "Checks if current user follows the celeb (after current user visited the celeb page) (2)", "gRPC")
+
+Rel(feedService, cachePostsMainFeed, "Gets data or makes cache replacement by oldest date")
+Rel(feedService, cachePostsMainFeed, "After 2, if user follows the celeb - adds certain posts from Celeb cache or from Posts service database")
+Rel(feedService, cachePostsHomeFeed, "Gets data or makes cache replacement by oldest date")
+Rel(feedService, cachePostsCelebFeed, "Gets data or makes cache replacement by oldest date")
+Rel(feedService, posts, "If user hasn't been for a long time, hence there will be no cache for it - go and get X number of posts. If for local main feed -> after (1)", "gRPC")
+
+@enduml
