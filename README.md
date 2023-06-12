@@ -21,7 +21,7 @@
 * **microservices:**
     * [dbdiagram.io file](database/microservices/social_network_db_microservices.io)
     * [png picture](database/microservices/social_network_microservices.png)
-    * [sql file](database/microservices/social_network_microservices.sql)
+    * [sql file (just example as in the system I used not only relational databases)](database/microservices/social_network_microservices.sql)
 
 <a id="distributed"></a>
 * **distributed storage specs (partitioning/sharding/replication)**
