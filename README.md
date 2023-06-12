@@ -1,8 +1,8 @@
-## System design for social network
+# System design for social network
 
 * It is a repository for system design tasks of the [system design course](https://balun.courses/courses/system_design)
 
-* Table of contents:
+* **Table of contents:**
     * [Swagger file](#swagger)
     * [Database explanation](#database)
     * [Distributed storage specs](#distributed)
@@ -11,13 +11,11 @@
     * [Load calculations](#load)
 
 ### API OAS3 compliant
-
 <a id="swagger"></a>
 
 * [API in YAML file for Swagger](api/rest_api.yml)
 
 ### Database
-
 <a id="database"></a>
 
 * **microservices:**
@@ -26,15 +24,13 @@
     * [sql file](database/microservices/social_network_microservices.sql)
 
 <a id="distributed"></a>
-
-* distributed storage specs (partitioning/sharding/replication)
+* **distributed storage specs (partitioning/sharding/replication)**
   are [here](database/microservices/distributed_storage.md)
 
 ### Architecture
-
 <a id="architecture"></a>
 
-* I used C4 model for showing my design
+* I used C4 model for showing my design. In this very architecture I used C1, C2, C3 levels
 * Explanation of this model can be found [here](https://c4model.com/)
 * Repo with PlantUML extension for C4 is [here](https://github.com/plantuml-stdlib/C4-PlantUML)
   <br/><br/>
@@ -42,7 +38,7 @@
 
 ![C1](./architecture_as_code/architecture_images/c1.png)
 
-* C2 level. For more details see C3 below as it describes each system in greater detail
+* C2 level (click on the image to open it in bigger size and greater quality). For more details see C3 below as it describes each system in greater detail
 
 ![C2](./architecture_as_code/architecture_images/c2.png)
 
@@ -55,7 +51,6 @@
 ### Functional and Non-Functional requirements
 
 TLDR: approximate requirements which can be altered further <br/><br/>
-
 <a id="requirements"></a>
 
 * **Functional**
