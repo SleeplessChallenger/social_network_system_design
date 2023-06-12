@@ -21,11 +21,11 @@ I.e. User writes/likes post or comment -> request is sent to the service with us
 */
 
 Table posts {
-  post_id integer [primary key]
+  post_id bigint [primary key]
   body text
   author_id integer
   date_added timestamp
-  image string [null] // link to the position in S3
+  images string[] [null] // link to the position in S3
   likes integer [default: 0]
   views integer [default: 0] // Ideally, also create a table to track who has seen the post
   hashtags integer [null]
@@ -33,57 +33,54 @@ Table posts {
 }
 
 Table comments {
-  comment_id integer [primary key]
+  comment_id bigint [primary key]
   comment_content text
   likes integer [default: 0]
   posted_at timestamp
-  image string [null] // link to the position in S3
+  images string[] [null] // link to the position in S3
 }
 
 // Closure table
 Table parentChildComments {
-  parent_comment integer // FK
-  child_comment integer // FK
+  parent_comment bigint // FK
+  child_comment bigint // FK
 }
 
 Table likes {
-  like_id integer [primary key]
-  user_id integer // foreign key
-  post_comment_id integer // foreign key
+  like_id bigint [primary key]
+  user_id bigint // FK
+  comment_id bigint // FK
+  post_id bigint // FK
 }
 
+Table postsHastags {
+  post_id bigint
+  tag_id bigint
+}
+
+Ref: comments.comment_id < likes.like_id
+
+// In my system it is a separate system
 Table hashtags {
-  tag_id integer [primary key]
+  // connected on the application level
+  tag_id bigint [primary key]
   tag_name text
-}
-
-/*
-Join table for Many-To-Many relationship between Posts, HashTags, Comments
-https://stackoverflow.com/a/24800716/16543524
-*/
-
-Table tagPostCommentRelation {
-  tag_id integer
-  post_id integer
-  comment_id integer
 }
 
 Ref: comments.comment_id < parentChildComments.parent_comment
 Ref: comments.comment_id < parentChildComments.child_comment
+Ref: posts.post_id < likes.like_id
+Ref: posts.post_id < comments.comment_id
 
-Ref: posts.post_id < tagPostCommentRelation.post_id
-Ref: hashtags.tag_id < tagPostCommentRelation.tag_id
-Ref: comments.comment_id < tagPostCommentRelation.comment_id
-
-Ref: posts.likes < likes.post_comment_id
-Ref: comments.comment_id < likes.post_comment_id
-
-// Second microservice: responsible for users and their relations
+/*
+Second system: responsible for users and their relations.
+In my system relations is a separate system with graph database
+*/
 
 // Relational database example
 
 Table users {
-  user_id integer [primary key]
+  user_id bigint [primary key]
   name varchar
   surname varchar
   age integer [null]
@@ -92,29 +89,53 @@ Table users {
   friends integer [null]
   interests string [null]
   city string [null]
+  last_seen timestamp
 }
 
 Table relations {
-  request_side integer // FK. It is first side of the relation
-  accept_side integer // FK It is second side of the relation
+  request_side bigint // FK. It is first side of the relation
+  accept_side bigint // FK It is second side of the relation
 }
 
 Ref: users.user_id < relations.request_side
 Ref: users.user_id < relations.accept_side
 
 // Third microservice: responsible for messages and chats
+// Here NoSQL db: MongoDB/Cassandra
 
 // API will accept data with user (author_id)
+Table channels {
+    channel_id bigint [primary key]
+    channel_name string
+}
+
 Table messages {
   message_id bigint
-  channel_id bigint
+  channel_id bigint // FK
   author_id integer // user id
   message_content text
-  content_url string // link to the position in S3
+  content_url string[] // link to the position in S3
   sent_at timestamp
-  seen boolean
-  message_id_channel_id bigint [primary key] // composite PK
 }
+
+Table last_seen {
+  // table for observing whether there are not read messages
+  // connected on the application level
+  author_id bigint // user id
+  channel_id bigint
+  message_id bigint
+}
+
+Table last_message {
+   // last message in the concrete chat
+   // decrease load on read as we have more read in read/write ratio
+   // compare from this table to last_seen table
+   // connected on the application level
+   channel_id bigint
+   message_id bigint
+}
+
+Ref: channels.channel_id < messages.message_id
 
 // Fourth microservice: responsible for storing Media data (images, video, audio)
 Table S3BucketExample {

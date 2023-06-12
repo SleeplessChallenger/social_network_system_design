@@ -2,28 +2,61 @@
 
 * It is a repository for system design tasks of the [system design course](https://balun.courses/courses/system_design)
 
+* Table of contents:
+    * [Swagger file](#swagger)
+    * [Database explanation](#database)
+    * [Distributed storage specs](#distributed)
+    * [All architecture in PNG. IMPORTANT: click on the image to open it in better quality and size](#architecture)
+    * [Functional & Non-Functional requirements](#requirements)
+    * [Load calculations](#load)
+
 ### API OAS3 compliant
+
+<a id="swagger"></a>
 
 * [API in YAML file for Swagger](api/rest_api.yml)
 
 ### Database
+
+<a id="database"></a>
 
 * **microservices:**
     * [dbdiagram.io file](database/microservices/social_network_db_microservices.io)
     * [png picture](database/microservices/social_network_microservices.png)
     * [sql file](database/microservices/social_network_microservices.sql)
 
-* **monolith:**
-    * [dbdiagram.io file](database/monolith/social_network_db_monolith.io)
-    * [png_file](database/monolith/social_network_monolith.png)
-    * [sql file](database/monolith/social_network_monolith.sql)
+<a id="distributed"></a>
 
 * distributed storage specs (partitioning/sharding/replication)
-  are [here: microservices only](database/microservices/distributed_storage.md)
+  are [here](database/microservices/distributed_storage.md)
+
+### Architecture
+
+<a id="architecture"></a>
+
+* I used C4 model for showing my design
+* Explanation of this model can be found [here](https://c4model.com/)
+* Repo with PlantUML extension for C4 is [here](https://github.com/plantuml-stdlib/C4-PlantUML)
+  <br/><br/>
+* C1 level
+
+![C1](./architecture_as_code/architecture_images/c1.png)
+
+* C2 level. For more details see C3 below as it describes each system in greater detail
+
+![C2](./architecture_as_code/architecture_images/c2.png)
+
+* C3 level
+    * users: ![C3_users](./architecture_as_code/architecture_images/c3_users.png)
+    * posts: ![C3_users](./architecture_as_code/architecture_images/c3_posts.png)
+    * chats/messages: ![C3_users](./architecture_as_code/architecture_images/c3_chats.png)
+    * feed: ![C3_feed](./architecture_as_code/architecture_images/c3_feed.png)
 
 ### Functional and Non-Functional requirements
 
 TLDR: approximate requirements which can be altered further <br/><br/>
+
+<a id="requirements"></a>
 
 * **Functional**
     * _channels/chats_:
@@ -44,17 +77,12 @@ TLDR: approximate requirements which can be altered further <br/><br/>
         * comments may have likes + replies
         * posts have feature **seen by** (like on LinkedIn)
         * posts must be in `order by datetime DESC`
-    * _groups_:
-        * creation of groups
-        * deletion of groups
-        * posts in groups (all features of posts are applicable here)
-        * users can join groups and leave groups
     * _feed_:
         * feed of each user
         * feed of all users
         * feed of all groups' posts + all users' posts
     * _user_:
-        * login window (probably SSO + IdP)
+        * login window (happens in IdP. API Gateway helps with it)
         * home page (image, about, interests) with posts of the very user
         * settings (change password, image, about)
         * friends: add friend/delete friend <br/><br/>
@@ -81,6 +109,7 @@ TLDR: approximate requirements which can be altered further <br/><br/>
     * _geo-distributed_: Russia (east and west), Central Asia <br/><br/>
 
 * **Load/Storage calculations**
+  <a id="load"></a>
     * 1 image (1024 X 768 pixels) is roughly 1 MB (0.75 MB exactly). Hence, overall size for pictures is 5 MB (upper
       bound):
         * https://www.pixelconverter.com/pixel-to-mb-converter/

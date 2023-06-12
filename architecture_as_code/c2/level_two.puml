@@ -1,0 +1,89 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(userAlias, "User", "User of the social network who has an account")
+
+System(geo, "geoDNS", "geoDNS which allows to redistribute a request to the closest DC")
+
+
+System(lbAlias, "Load balancer: DC1", "Nginx, HAProxy")
+System(lbAlias2, "Load balancer: DC2", "Nginx, HAProxy")
+System(lbAlias3, "Load balancer: DC3", "Nginx, HAProxy")
+
+System(cdn, "CDN", "Stores static content")
+
+System(agwAlias, "API Gateway", "API Gateway to proxy the traffic into the internal network + plays role of SSO")
+System(IdPAlias, "IdP", "Identity provider which is accessed by SSO from the API Gateway")
+
+System_Boundary(c2, "Inner network (K8S cluster)") {
+    System(postSysytemAlias, "Posts system", "Java 17 + SpringBoot/Quarkus + GraalVM")
+    System(chatSysytemAlias, "Chats system", "Java 17 + SpringBoot/Quarkus + GraalVM")
+    System(analyticsSysytemOursAlias, "Analytics system", "Java 17 + SpringBoot/Quarkus + GraalVM")
+    System(usersSystemAlias, "Users system", "Java 17 + SpringBoot/Quarkus + GraalVM")
+
+    ContainerDb(postDB, "Post database", $tags="db", "PostgreSQL + Liquibase", "Stores all data about posts")
+    ContainerDb(chatsDB, "Messages database", $tags="db", "MongoDB/Cassandra + Liquibase", "Stores all data about messages")
+    ContainerDb(usersDb, "Users database", $tags="db", "PostgreSQL + Liquibase", "Stores all data about users")
+}
+
+System(dc2System, "Similar system in DC2")
+System(dc3System, "Similar system in DC3")
+
+System_Boundary(hashtagSystem, "System for hashtags") {
+    Container(hashtag, "Hashtags microservice", "Java 17 + SpringBoot/Quarkus + GraalVM", "Responsible for storing hashtags")
+    ContainerDb(hashtagDb, "Hashtags database", $tags="db", "MongoDB", "Keeps hashtags which are created by users (available to all users) or added by social network")
+}
+
+System_Boundary(relationSystem, "System for all the relations between people") {
+    Container(relationService, "Relations microservice", "Go/Python")
+    ContainerDb(graph, "Relation database", $tags="db", "Neo4J", "Keeps info about all relations")
+}
+ContainerQueue(relationMQ, "Message queue", "Kafka", "More info: users system C3")
+
+Rel(relationService, graph, "Persists/Retrieves/Deletes data")
+
+Rel(usersSystemAlias, relationMQ, "More info: users system C3")
+
+System_Boundary(s3System, "Network for blob storage (StatefulSet). Accessed by all DC") {
+    Container(s3Container, "S3 Microservice")
+    ContainerDb(s3, "Blob storage", $tags="db", "Amazon S3/Ceph", "Storage for blob data")
+}
+
+Rel(s3Container, s3, "Sends data to s3")
+
+
+System(analyticsSystemAlias, "Analytics system", "System which is used for making analytics about all the actions in the social network system")
+
+ContainerQueue(mq, "Message Queue", "Kafka", "Topic based queue to decouple event sending from analytics microservice to analytics system")
+
+Rel(userAlias, geo, "Request from any user")
+Rel_L(agwAlias, relationService, "More info: users system C3")
+
+Rel(geo, cdn, "Gets static content")
+
+Rel_L(geo, lbAlias, "Request got distributed from geoDNS to the appropriate LB")
+
+Rel(geo, lbAlias2, "Request got distributed from geoDNS to the appropriate LB")
+Rel(geo, lbAlias3, "Request got distributed from geoDNS to the appropriate LB")
+Rel(lbAlias2, dc2System, "Request to the system")
+Rel(lbAlias3, dc3System, "Request to the system")
+
+
+Rel_L(lbAlias, agwAlias, "Request from LB to API Gateway")
+Rel(agwAlias, c2, "Request from user to any microservice in the system", "REST over HTTP")
+
+Rel(agwAlias, IdPAlias, "API Gateway will redirect each response to the social network to the IdP. User logs in (in IdP) and has SSO session. Next time each response will be redirected to IdP as well and validated for active session")
+Rel(postSysytemAlias, postDB, "Persists/Retrieves data")
+Rel(chatSysytemAlias, chatsDB, "Persists/Retrieves data")
+Rel(usersSystemAlias, usersDb, "Persists/Retrieves data")
+Rel(c2, hashtagSystem, "Request from main system for storing/getting hashtags", "gRPC")
+
+Rel_U(analyticsSysytemOursAlias, mq, "Analytics microservice sends data to topic to decouple process between separate systems")
+Rel_L(mq, analyticsSystemAlias, "Analytics systems pulls data from the desired topics")
+
+Rel(IdPAlias, usersSystemAlias, "Sends data about new users", "gRPC")
+
+Rel(c2, s3System, "Microservices save blob in S3 and get URL")
+Rel(hashtag, hashtagDb, "Persists data")
+
+@enduml
