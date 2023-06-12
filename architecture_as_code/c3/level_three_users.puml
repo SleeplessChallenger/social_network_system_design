@@ -1,0 +1,43 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+System(agwAlias, "API Gateway", "API Gateway to proxy the traffic into the internal network + plays role of SSO")
+System(IdPAlias, "IdP", "Identity provider which is accessed by SSO from the API Gateway")
+
+System_Boundary(c3, "Inner network (K8S cluster) - area of users system") {
+    Container(users, "User microservice", "Java 17 + SpringBoot/Quarkus + GraalVM", "Responsible for home page of the user; user settings")
+    Container(allPeople, "People microservice", "Java 17 + SpringBoot/Quarkus + GraalVM", "Responsible for showing all people in the system (or allowing to make fine-grained search)")
+
+    ContainerDb(usersDb, "Users database", $tags="db", "PostgreSQL", "Stores data about user (users and realtions table in io diagram)")
+}
+
+System_Boundary(relationSystem, "System for all the relations between people") {
+    Container(relationService, "Relations microservice", "Go/Python")
+    ContainerDb(graph, "Relation database", $tags="db", "Neo4J", "Keeps info about all relations")
+}
+Rel(relationService, graph, "Persists/Retrieves/Deletes data")
+
+ContainerQueue(relationMQ, "Message queue", "Kafka", "Keeps 2 topics: a) for addition of friends in the relations b) for removing friends in the relations")
+
+System_Boundary(s3System, "Network for blob storage (StatefulSet)") {
+    Container(s3Container, "S3 Microservice")
+    ContainerDb(s3, "Blob storage", $tags="db", "Amazon S3/Ceph", "Storage for blob data")
+}
+
+Rel(users, relationMQ, "After new friend has been added in People microservice")
+Rel(agwAlias, relationService, "Delete a friend")
+Rel(relationMQ, relationService, "Pulls data")
+Rel(relationService, relationMQ, "After friends have been deleted in the Relation service - need to be removed in the main system")
+Rel_L(relationMQ, users, "Pulls data")
+
+Rel(agwAlias, c3, "Request from user to the users system")
+Rel(IdPAlias, users, "Gives data about user: user account created/deleted + after logout/exiting the app it sends request", "gRPC")
+Rel(agwAlias, IdPAlias, "Request (See c2 for details)")
+
+Rel(users, usersDb, "Sends data about user")
+Rel(allPeople, users, "Gets data for showing all people in the system; adds friend to the current user (relation table in users database)", "gRPC")
+
+Rel(users, s3System, "Saves data and gets URL + responsible for giving objects when other services in this system asks for users", "gRPC")
+Rel(s3Container, s3, "Data saving")
+
+@enduml

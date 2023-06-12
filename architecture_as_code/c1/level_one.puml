@@ -1,0 +1,19 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(userAlias, "User", "User of the social network who has an account")
+
+Container(socialNetworkAlias, "Social network system", "K8S cluster", "All the system")
+
+System(IdPalias, "IdP", "Identity provider which is accessed by SSO from the Social Network System")
+System(analyticsSystemAlias, "Analytics system", "System which is used for making analytics about all the actions in the social network system")
+System(agwAlias, "API Gateway", "API Gateway to proxy the traffic into the internal network + plays role of SSO")
+
+Rel(userAlias, agwAlias, "User makes request to the system")
+Rel(agwAlias, IdPalias, "Performs SSO")
+Rel(agwAlias, socialNetworkAlias, "Makes request to the social network system")
+Rel(socialNetworkAlias, analyticsSystemAlias, "Main system gives data to the service")
+
+LAYOUT_WITH_LEGEND()
+
+@enduml

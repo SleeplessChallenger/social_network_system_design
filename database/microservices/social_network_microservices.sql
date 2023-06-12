@@ -1,9 +1,9 @@
 CREATE TABLE "posts" (
-  "post_id" integer PRIMARY KEY,
+  "post_id" bigint PRIMARY KEY,
   "body" text,
   "author_id" integer,
   "date_added" timestamp,
-  "image" string,
+  "images" string[],
   "likes" integer DEFAULT 0,
   "views" integer DEFAULT 0,
   "hashtags" integer,
@@ -11,37 +11,37 @@ CREATE TABLE "posts" (
 );
 
 CREATE TABLE "comments" (
-  "comment_id" integer PRIMARY KEY,
+  "comment_id" bigint PRIMARY KEY,
   "comment_content" text,
   "likes" integer DEFAULT 0,
   "posted_at" timestamp,
-  "image" string
+  "images" string[]
 );
 
 CREATE TABLE "parentChildComments" (
-  "parent_comment" integer,
-  "child_comment" integer
+  "parent_comment" bigint,
+  "child_comment" bigint
 );
 
 CREATE TABLE "likes" (
-  "like_id" integer PRIMARY KEY,
-  "user_id" integer,
-  "post_comment_id" integer
+  "like_id" bigint PRIMARY KEY,
+  "user_id" bigint,
+  "comment_id" bigint,
+  "post_id" bigint
+);
+
+CREATE TABLE "postsHastags" (
+  "post_id" bigint,
+  "tag_id" bigint
 );
 
 CREATE TABLE "hashtags" (
-  "tag_id" integer PRIMARY KEY,
+  "tag_id" bigint PRIMARY KEY,
   "tag_name" text
 );
 
-CREATE TABLE "tagPostCommentRelation" (
-  "tag_id" integer,
-  "post_id" integer,
-  "comment_id" integer
-);
-
 CREATE TABLE "users" (
-  "user_id" integer PRIMARY KEY,
+  "user_id" bigint PRIMARY KEY,
   "name" varchar,
   "surname" varchar,
   "age" integer,
@@ -49,12 +49,18 @@ CREATE TABLE "users" (
   "image" string,
   "friends" integer,
   "interests" string,
-  "city" string
+  "city" string,
+  "last_seen" timestamp
 );
 
 CREATE TABLE "relations" (
-  "request_side" integer,
-  "accept_side" integer
+  "request_side" bigint,
+  "accept_side" bigint
+);
+
+CREATE TABLE "channels" (
+  "channel_id" bigint PRIMARY KEY,
+  "channel_name" string
 );
 
 CREATE TABLE "messages" (
@@ -62,10 +68,19 @@ CREATE TABLE "messages" (
   "channel_id" bigint,
   "author_id" integer,
   "message_content" text,
-  "content_url" string,
-  "sent_at" timestamp,
-  "seen" boolean,
-  "message_id_channel_id" bigint PRIMARY KEY
+  "content_url" string[],
+  "sent_at" timestamp
+);
+
+CREATE TABLE "last_seen" (
+  "author_id" bigint,
+  "channel_id" bigint,
+  "message_id" bigint
+);
+
+CREATE TABLE "last_message" (
+  "channel_id" bigint,
+  "message_id" bigint
 );
 
 CREATE TABLE "S3BucketExample" (
@@ -73,20 +88,18 @@ CREATE TABLE "S3BucketExample" (
   "SOCIAL_NETWORK_KEY" object
 );
 
+ALTER TABLE "likes" ADD FOREIGN KEY ("like_id") REFERENCES "comments" ("comment_id");
+
 ALTER TABLE "parentChildComments" ADD FOREIGN KEY ("parent_comment") REFERENCES "comments" ("comment_id");
 
 ALTER TABLE "parentChildComments" ADD FOREIGN KEY ("child_comment") REFERENCES "comments" ("comment_id");
 
-ALTER TABLE "tagPostCommentRelation" ADD FOREIGN KEY ("post_id") REFERENCES "posts" ("post_id");
+ALTER TABLE "likes" ADD FOREIGN KEY ("like_id") REFERENCES "posts" ("post_id");
 
-ALTER TABLE "tagPostCommentRelation" ADD FOREIGN KEY ("tag_id") REFERENCES "hashtags" ("tag_id");
-
-ALTER TABLE "tagPostCommentRelation" ADD FOREIGN KEY ("comment_id") REFERENCES "comments" ("comment_id");
-
-ALTER TABLE "likes" ADD FOREIGN KEY ("post_comment_id") REFERENCES "posts" ("likes");
-
-ALTER TABLE "likes" ADD FOREIGN KEY ("post_comment_id") REFERENCES "comments" ("comment_id");
+ALTER TABLE "comments" ADD FOREIGN KEY ("comment_id") REFERENCES "posts" ("post_id");
 
 ALTER TABLE "relations" ADD FOREIGN KEY ("request_side") REFERENCES "users" ("user_id");
 
 ALTER TABLE "relations" ADD FOREIGN KEY ("accept_side") REFERENCES "users" ("user_id");
+
+ALTER TABLE "messages" ADD FOREIGN KEY ("message_id") REFERENCES "channels" ("channel_id");

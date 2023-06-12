@@ -1,0 +1,64 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+System(agwAlias, "API Gateway", "API Gateway to proxy the traffic into the internal network + plays role of SSO")
+System(lb, "LB", "Nginx, HAProxy")
+Person(userAlias, "User", "User of the social network who has an account")
+
+System_Boundary(c3, "Inner network (K8S cluster) - area of chats system") {
+    Container(chats, "Chats microservice", "Java 17 + SpringBoot/Quarkus + GraalVM", "Responsible for writing logic in the chats")
+    Container(notifier, "Notifier microservice", "Java 17 + SpringBoot/Quarkus + GraalVM", "a) Sends notification to the user that there is a new message b) Deletes a message if sender deleted it")
+    Container(offlineNotifier, "Offline notifier microservice", "Go/Python", "if user offline (no mapping in Redis -> use this service)")
+
+    System_Boundary(chatsDatabase, "Database for storing information about chats/messages") {
+        ContainerDb(channels, "ChannelsDB", "NoSQL", "DB for channels", $tags="db")
+        ContainerDb(messages, "MessagesDB", "NoSQL", "DB for messages", $tags="db")
+        ContainerDb(lastMessage, "LastMessageDB", "Redis", "Last message in the chat. Done on the application level")
+        ContainerDb(lastSeen, "LastSeenMessageDB", "Redis", "Last SEEN message by user in the chat. Done on the application level")
+    }
+
+    ContainerDb(userAddressMatcher, "User IP matcher", $tags="db", "Redis")
+    ContainerQueue(mq, "Message Queue", "Kafka", "Topic based queue which")
+}
+
+Rel(channels, messages, "One-To-Many")
+
+System_Boundary(smartsharding, "Smart sharding system") {
+    Container(leader, "Smart sharding: leader", "C++", "Leader in the smart sharding system")
+    Container(follower1, "Smart sharding: follower 1", "C++", "Follower 1 in the smart sharding system")
+    Container(follower2, "Smart sharding: follower 2", "C++", "Follower 2 in the smart sharding system")
+
+    ContainerDb(smartshardingDb, "Keeps info about how to shard data", $tags="db", "Zookeeper + replication for durability")
+}
+
+
+System_Boundary(hashtagSystem, "System for hashtags") {
+    Container(hashtag, "Hashtags microservice", "Java 17 + SpringBoot/Quarkus + GraalVM", "Responsible for storing hashtags")
+    ContainerDb(hashtagDb, "Hashtags database", $tags="db", "MongoDB", "Keeps hashtags which are created by users (available to all users) or added by social network")
+}
+
+System_Boundary(s3System, "Network for blob storage (StatefulSet)") {
+    Container(s3Container, "S3 Microservice")
+    ContainerDb(s3, "Blob storage", $tags="db", "Amazon S3/Ceph", "Storage for blob data")
+}
+
+Rel(agwAlias, chats, "User sends a message")
+Rel(hashtag, hashtagDb, "Stores data")
+Rel(chats, smartsharding, "Persists data")
+Rel(leader, chatsDatabase, "Persists/retrieves data")
+
+Rel(leader, smartshardingDb, "Gets info about which shard to send data to")
+
+Rel(chats, hashtagSystem, "When hashtag is written, request goes to the hashtag microserivce. Either new hashtag is added or exisitng is taken")
+Rel(chats, s3System, "Saves data and gets URL", "gRPC")
+Rel(chats, mq, "Message goes to the MQ")
+Rel(mq, notifier, "Pulls message from MQ")
+Rel(notifier, userAddressMatcher, "Takes userId and gets user IP")
+Rel(notifier, lb, "Sends push notification to the user: WebSockets/Streaming")
+Rel(notifier, offlineNotifier, "Request")
+Rel(offlineNotifier, userAlias, "Sends notification to offline users")
+Rel(lb, userAlias, "User receives a push")
+
+Rel(s3Container, s3, "Data saving")
+
+@enduml

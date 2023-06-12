@@ -1,0 +1,45 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+System(agwAlias, "API Gateway", "API Gateway to proxy the traffic into the internal network + plays role of SSO")
+
+System_Boundary(c3, "Inner network (K8S cluster) - area of posts system") {
+   System_Boundary(postsDb, "Tables inside the database") {
+       ContainerDb(postsTable, "Table for storing all the posts", $tags="db")
+       ContainerDb(likesTable, "Table for storing all the likes", $tags="db")
+       ContainerDb(commentsTable, "Table for storing all the comments", $tags="db")
+       ContainerDb(relationTable, "Table for storing Many-To-Many relation between: posts and hashtags (done on the application level)", $tags="db", "This allows to SELECT all posts with particular hashtag or all hashtags in the particular post")
+   }
+
+    Container(posts, "Post microservice", "Java 17 + SpringBoot/Quarkus + GraalVM", "Responsible for posts creation")
+}
+
+System_Boundary(hashtagSystem, "System for hashtags") {
+    Container(hashtag, "Hashtags microservice", "Java 17 + SpringBoot/Quarkus + GraalVM", "Responsible for storing hashtags")
+    ContainerDb(hashtagDb, "Hashtags database", $tags="db", "MongoDB", "Keeps hashtags which are created by users (available to all users) or added by social network")
+}
+
+System_Boundary(s3System, "Network for blob storage (StatefulSet)") {
+    Container(s3Container, "S3 Microservice")
+    ContainerDb(s3, "Blob storage", $tags="db", "Amazon S3/Ceph", "Storage for blob data")
+}
+
+ContainerQueue(mq, "Message Queue", "Kafka", "Topic based queue to decouple posts creation from their appearance in the feed")
+
+Rel(agwAlias, c3, "Request from user to the users system")
+
+Rel(postsTable, likesTable, "One-To-Many")
+Rel(postsTable, commentsTable, "One-To-Many")
+Rel(commentsTable, likesTable, "One-To-Many")
+
+Rel(hashtag, hashtagDb, "Stores data")
+
+Rel(posts, postsDb, "Persists data")
+Rel(posts, hashtagSystem, "When hashtag is written, request goes to the hashtag microserivce. Either new hashtag is added or exisitng is taken")
+
+Rel(posts, mq, "Sends a) new post to Queue b) request to delete a post")
+
+Rel(posts, s3System, "Saves data and gets URL", "gRPC")
+Rel(s3Container, s3, "Data saving")
+
+@enduml
