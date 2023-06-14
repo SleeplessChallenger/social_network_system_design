@@ -11,11 +11,13 @@
     * [Load calculations](#load)
 
 ### API OAS3 compliant
+
 <a id="swagger"></a>
 
 * [API in YAML file for Swagger](api/rest_api.yml)
 
 ### Database
+
 <a id="database"></a>
 
 * **microservices:**
@@ -24,13 +26,16 @@
     * [sql file (just example as in the system I used not only relational databases)](database/microservices/social_network_microservices.sql)
 
 <a id="distributed"></a>
+
 * **distributed storage specs (partitioning/sharding/replication)**
   are [here](database/microservices/distributed_storage.md)
 
 ### Architecture
+
 <a id="architecture"></a>
 
-* I used C4 model for showing my design. In this very architecture I used C1, C2, C3 levels
+* I used C4 model for showing my design. In this very architecture I used C1, C2 levels as they cover overall
+  architecture and systems
 * Explanation of this model can be found [here](https://c4model.com/)
 * Repo with PlantUML extension for C4 is [here](https://github.com/plantuml-stdlib/C4-PlantUML)
   <br/><br/>
@@ -38,15 +43,16 @@
 
 ![C1](./architecture_as_code/architecture_images/c1.png)
 
-* C2 level (click on the image to open it in bigger size and greater quality). For more details see C3 below as it describes each system in greater detail
+* C2 level (click on the image to open it in bigger size and greater quality). For more details see in-depth
+  architecture of each system below:
 
 ![C2](./architecture_as_code/architecture_images/c2.png)
 
-* C3 level
-    * users: ![C3_users](./architecture_as_code/architecture_images/c3_users.png)
-    * posts: ![C3_users](./architecture_as_code/architecture_images/c3_posts.png)
-    * chats/messages: ![C3_users](./architecture_as_code/architecture_images/c3_chats.png)
-    * feed: ![C3_feed](./architecture_as_code/architecture_images/c3_feed.png)
+* C2 level per system
+    * users: ![C3_users](./architecture_as_code/architecture_images/c2_users.png)
+    * posts: ![C3_users](./architecture_as_code/architecture_images/c2_posts.png)
+    * chats/messages: ![C3_users](./architecture_as_code/architecture_images/c2_chats.png)
+    * feed: ![C3_feed](./architecture_as_code/architecture_images/c2_feed.png)
 
 ### Functional and Non-Functional requirements
 
